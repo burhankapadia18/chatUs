@@ -14,15 +14,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import include, path
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.urls import include, path, re_path
+from rest_framework.routers import DefaultRouter
+
+from chat_room.urls import router as chat_room_router
+
+# only for testing
+from chat_room.views import test_room
+
+router = DefaultRouter()
+router.registry.extend(chat_room_router.registry)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('authentication/', include('authentication.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('test-room/', test_room, name='test-room'),
+    re_path(r'', include(router.urls))
 ]

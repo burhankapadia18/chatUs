@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ SECRET_KEY = 'django-insecure-9#@ln(g+(os8ml1gju5m!lvl(1zgl-vp^f8mrih-)0#o6@#i@o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,8 +41,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'authentication',
+    'chat_room',
+
     'rest_framework',
     'rest_framework_simplejwt',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -59,7 +63,7 @@ ROOT_URLCONF = 'chatUs.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,6 +77,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'chatUs.wsgi.application'
+ASGI_APPLICATION = 'chatUs.asgi.application'
 
 
 # Database
@@ -121,6 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -168,4 +174,11 @@ SIMPLE_JWT = {
     # 'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
     # 'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
     # 'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+}
+
+# only for testing, use redis channel layer afterwards
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
 }

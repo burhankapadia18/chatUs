@@ -1,0 +1,15 @@
+services:
+  conneckseek:
+    image: chat_us
+    command: python /app/manage.py runserver 0.0.0.0:9000
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - web_media:/app/media
+      - web_static:/app/static  
+      - ./:/app 
+    ports:
+      - 8000:8000
+    depends_on:
