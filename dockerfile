@@ -1,4 +1,4 @@
-FROM python:3.6-slim-buster
+FROM python:3.8-slim-buster
 ENV PYTHONUNBUFFERED 1
 
 # install dev packages in a virtual package .build-deps

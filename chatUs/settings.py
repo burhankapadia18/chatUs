@@ -76,7 +76,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'chatUs.wsgi.application'
+# WSGI_APPLICATION = 'chatUs.wsgi.application'
 ASGI_APPLICATION = 'chatUs.asgi.application'
 
 
@@ -177,8 +177,16 @@ SIMPLE_JWT = {
 }
 
 # only for testing, use redis channel layer afterwards
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "channels.layers.InMemoryChannelLayer"
+#     }
+# }
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }

@@ -10,7 +10,7 @@
     </head>
     <body>
         
-        <h3 id="label-username">USERNAME</h3>
+        <h3 id="label-username">USERNAME {{room_name}}</h3>
         <div>
             <input id="username"><button id="btn-join">Join Room</button>
         </div>
@@ -29,10 +29,12 @@
                 </div>
                 <div><input id="msg"><button id="btn-send-msg">Send Message</button></div>
             </div>
-
         </div>
 
-        <script type="text/javascript" src="{% static 'js/main_new.js' %}"></script>
+        <script>
+            var room_id = "{{room_name|escapejs}}";
+        </script>
+        <script type="text/javascript" src="{% static 'js/main.js' %}"></script>
 
     </body>
 </html>

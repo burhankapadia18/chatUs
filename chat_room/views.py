@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import ModelViewSet
 from rest_framework import viewsets
 from rest_framework.decorators import action
+import uuid
 
 # Create your views here.
 
@@ -22,5 +23,6 @@ class chat_roomViewSet(ModelViewSet):
 
 
 def test_room(request):
-    data = {}
+    data = {'room_name':str(uuid.uuid4())}
+    print(data)
     return render(request, 'chat_room/room.html', data)

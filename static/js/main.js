@@ -10,9 +10,8 @@ var username;
 var webSocket;
 
 function webSocketOnMsg(event) {
-    console.log('in webSocketOnMsg')
-
     var parsedData = JSON.parse(event.data);
+    
     var peerUsername = parsedData['peer']
     var action = parsedData['action']
 
@@ -20,18 +19,23 @@ function webSocketOnMsg(event) {
         return;
     }
 
-    reciever_channel_name = parsedData['msg']['reciever_channel_name'];
+    var receiver_channel_name = parsedData['message']['receiver_channel_name'];
+
     if(action == 'new-peer') {
-        createOfferer(peerUsername,reciever_channel_name);
+        createOfferer(peerUsername,receiver_channel_name);
+        return;
     }
 
     if(action == 'new-offer') {
-        var offer = parsedData['msg']['sdp']
-        createAnswer(offer,peerUsername,reciever_channel_name);
+        var offer = parsedData['message']['sdp']
+        
+        createAnswer(offer,peerUsername,receiver_channel_name);
+        
+        return;
     }
 
     if(action == 'new-answer') {
-        var answer = parsedData['msg']['sdp'];
+        var answer = parsedData['message']['sdp'];
 
         var peer = mapPeers[peerUsername][0];
 
@@ -39,6 +43,7 @@ function webSocketOnMsg(event) {
 
         return;
     }
+    
 }
 
 btnJoin.addEventListener('click', () => {
@@ -71,7 +76,6 @@ btnJoin.addEventListener('click', () => {
     console.log('endpoint: ', endpoint);
 
     webSocket = new WebSocket(endpoint);
-
     webSocket.addEventListener('open', (e) => {
         console.log('connection opened! from websocket');
         sendSignal('new-peer',{});
@@ -83,6 +87,8 @@ btnJoin.addEventListener('click', () => {
     webSocket.addEventListener('error', (e) => {
         console.log('error occured!');
     });
+
+    
 });
 
 var localStream = new MediaStream();
@@ -132,17 +138,16 @@ var userMedia = navigator.mediaDevices.getUserMedia(constraints)
     });
 
 var btnSendMsg = document.querySelector('#btn-send-msg');
-
 btnSendMsg.addEventListener('click', sendMsgOnclick);
-var msgList = document.querySelector('#message-list');
-var msgInput = document.querySelector('#msg');
+var messageList = document.querySelector('#message-list');
+var messageInput = document.querySelector('#msg');
 
 function sendMsgOnclick() {
-    var message = msgInput.value;
+    var message = messageInput.value;
 
     var li = document.createElement('li');
     li.appendChild(document.createTextNode('Me: '+message));
-    msgList.appendChild(li);
+    messageList.appendChild(li);
 
     var datachannels = getDataChannels();
 
@@ -152,47 +157,37 @@ function sendMsgOnclick() {
         datachannels[index].send(message);
     }
 
-    msgInput.value = '';
+    messageInput.value = '';
 }
 
-function sendSignal(action, msg) {
+function sendSignal(action, message) {
     console.log("in send signal !!")
     var jsonstr = JSON.stringify({
         'peer':username,
         'action':action,
-        'msg':msg,
+        'message':message,
     });
-    console.log(jsonstr)
     webSocket.send(jsonstr);
 }
 
-const iceConfiguration = {
-    iceServers: [
-        {
-            urls: 'turn:my-turn-server.mycompany.com:19403',
-            username: 'optional-username',
-            credentials: 'auth-token'
-        }
-    ]
-}
-function createOfferer(peerUsername, reciever_channel_name) {
-    console.log("in createOfferer!")
+function createOfferer(peerUsername, receiver_channel_name) {
+    console.log("in createOfferer!", peerUsername, receiver_channel_name)
     var peer = new RTCPeerConnection(null);
     addLocalTracks(peer);
     var dc = peer.createDataChannel('channel');
     dc.addEventListener('open', () => {
         console.log('connection opened! from webRTC');
     });
-    dc.addEventListener('msg', dcOnMessage);
+    dc.addEventListener('message', dcOnMessage);
 
     var remoteVideo = createVideo(peerUsername);
     setOnTrack(peer,remoteVideo);
 
-    mapPeers[peerUsername] = [track, dc];
+    mapPeers[peerUsername] = [peer, dc];
 
     peer.addEventListener('iceconnectionstatechange', () => {
         var iceConnectionState = peer.iceConnectionState;
-        if(iceConnectionState == 'failed' || iceConnectionState == 'disconnected' || iceConnectionState == 'closed') {
+        if(iceConnectionState === 'failed' || iceConnectionState === 'disconnected' || iceConnectionState === 'closed') {
             delete mapPeers[peerUsername];
             if(iceConnectionState != 'closed') {
                 peer.close();
@@ -203,12 +198,12 @@ function createOfferer(peerUsername, reciever_channel_name) {
 
     peer.addEventListener('icecandidate', (event) => {
         if(event.candidate) {
-            console.log('new ice candidate', JSON.stringify(peer.localDescription));
+            console.log('new ice candidate : ', JSON.stringify(peer.localDescription));
             return;
         }
         sendSignal('new-offer', {
             'sdp':peer.localDescription,
-            'reciever_channel_name':reciever_channel_name
+            'receiver_channel_name':receiver_channel_name
         });
     });
 
@@ -219,7 +214,7 @@ function createOfferer(peerUsername, reciever_channel_name) {
         });
 }
 
-function createAnswer(offer, peerUsername, reciever_channel_name) {
+function createAnswer(offer, peerUsername, receiver_channel_name) {
     var peer = new RTCPeerConnection(null);
 
     addLocalTracks(peer);
@@ -232,11 +227,9 @@ function createAnswer(offer, peerUsername, reciever_channel_name) {
         peer.dc.addEventListener('open', () => {
             console.log('connecton opened!');
         });
-        dc.addEventListener('msg', dcOnMessage);
+        peer.dc.addEventListener('message', dcOnMessage);
         mapPeers[peerUsername] = [peer, peer.dc];
     });
-
-    mapPeers[peerUsername] = [track, dc];
 
     peer.addEventListener('iceconnectionstatechange', () => {
         var iceConnectionState = peer.iceConnectionState;
@@ -251,12 +244,12 @@ function createAnswer(offer, peerUsername, reciever_channel_name) {
 
     peer.addEventListener('icecandidate', (event) => {
         if(event.candidate) {
-            console.log('new ice candidate', JSON.stringify(peer.localDescription));
+            console.log('new ice candidate : createanswer');
             return;
         }
         sendSignal('new-answer', {
             'sdp':peer.localDescription,
-            'reciever_channel_name':reciever_channel_name
+            'receiver_channel_name':receiver_channel_name
         });
     });
 
@@ -281,17 +274,18 @@ function addLocalTracks(peer) {
 }
 
 function dcOnMessage(event) {
-    var msg = event.data;
+    var message = event.data;
 
     var li = document.createElement('li');
-    li.appendChild(document.createTextNode(msg));
-    msgList.appendChild(li);
+    li.appendChild(document.createTextNode(message));
+    messageList.appendChild(li);
 }
 
 function createVideo(peerUsername) {
     var videoContainer = document.querySelector('#video-container');
 
     var remoteVideo = document.createElement('video');
+
     remoteVideo.id = peerUsername + '-video';
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;

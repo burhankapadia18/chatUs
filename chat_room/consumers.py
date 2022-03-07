@@ -5,7 +5,7 @@ import json
 
 #     async def connect(self):
 #         self.room_group_name = 'Test-Room'
-#         print('in connect')
+#         # print('in connect')
 #         await self.channel_layer.group_add(
 #             self.room_group_name,
 #             self.channel_name
@@ -19,44 +19,44 @@ import json
 #             self.channel_name
 #         )
 
-#     async def recieve(self, text_data):
-#         recieve_dict = json.loads(text_data)
-#         print("in recieve")
-#         print(text_data)
-#         msg = recieve_dict['msg']
-#         action = recieve_dict['action']
+#     async def receive(self, text_data):
+#         receive_dict = json.loads(text_data)
+#         print("in receive")
+#         msg = receive_dict['msg']
+#         action = receive_dict['action']
 
 #         if action == 'new-offer' or action == 'new-answer':
-#             reciever_channel_name = recieve_dict['msg']['reciever_channel_name']
-#             recieve_dict['msg']['reviever_channel_name'] = self.channel_name
+#             receiver_channel_name = receive_dict['msg']['receiver_channel_name']
+#             receive_dict['msg']['receiver_channel_name'] = self.channel_name
 #             await self.channel_layer.group_send(
-#                 reciever_channel_name,
+#                 receiver_channel_name,
 #                 {
 #                     'type':'send_sdp',
-#                     'recieve_dict':recieve_dict
+#                     'receive_dict':receive_dict
 #                 }
 #             )
+#             return
 
-#         recieve_dict['msg']['reciever_channel_name'] = self.channel_name      
+#         receive_dict['msg']['receiver_channel_name'] = self.channel_name
 
 #         await self.channel_layer.group_send(
 #             self.room_group_name,
 #             {
 #                 'type':'send_sdp',
-#                 'recieve_dict':recieve_dict
+#                 'receive_dict':receive_dict
 #             }
 #         )
 
 #     async def send_sdp(self, event):
-#         recieve_dict = event['recieve_dict']
+#         receive_dict = event['receive_dict']
         
-#         await self.send(text_data=json.dumps(recieve_dict))
+#         await self.send(text_data=json.dumps(receive_dict))
+
 
 class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.room_group_name = 'Test-Room'
-        print('in connect')
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
@@ -70,21 +70,38 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-    async def recieve(self, text_data):
-        recieve_dict = json.loads(text_data)
-        print("in recieve")
-        print(text_data)
-        msg = recieve_dict['message']   
+    async def receive(self, text_data):
+        receive_dict = json.loads(text_data)
+        msg = receive_dict['message']
+        action = receive_dict['action']
+        print('in receive:',action)
+
+        if action=='new-offer' or action=='new-answer':
+            receiver_channel_name = receive_dict['message']['receiver_channel_name']
+
+            receive_dict['message']['receiver_channel_name'] = self.channel_name
+
+            await self.channel_layer.send(
+                receiver_channel_name,
+                {
+                    'type':'send.sdp',
+                    'receive_dict':receive_dict
+                }
+            )
+
+            return
+
+        receive_dict['message']['receiver_channel_name'] = self.channel_name
 
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type':'send.message',
-                'message':msg
+                'type':'send.sdp',
+                'receive_dict':receive_dict
             }
         )
 
-    async def send_message(self, event):
-        msg = event['message']
+    async def send_sdp(self, event):
+        receive_dict = event['receive_dict']
         
-        await self.send(text_data=json.dumps({'message':msg}))
+        await self.send(text_data=json.dumps(receive_dict))
