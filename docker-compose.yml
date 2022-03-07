@@ -1,4 +1,5 @@
 services:
+
   conneckseek:
     image: chat_us
     command: python /app/manage.py runserver 0.0.0.0:8000
@@ -10,4 +11,8 @@ services:
       - ./:/app 
     ports:
       - 8000:8000
-    depends_on:
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
