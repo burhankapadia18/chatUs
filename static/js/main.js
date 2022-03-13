@@ -118,10 +118,10 @@ var userMedia = navigator.mediaDevices.getUserMedia(constraints)
         btnToggleAudio.addEventListener('click', () => {
             audioTracks[0].enabled = !audioTracks[0].enabled;
             if(audioTracks[0].enabled) {
-                btnToggleAudio.innerHTML = 'Audio Mute';
+                btnToggleAudio.innerHTML = 'Mute';
                 return;
             }
-            btnToggleAudio.innerHTML = 'Audio Unmute';
+            btnToggleAudio.innerHTML = 'Unmute';
         });
 
         btnToggleVideo.addEventListener('click', () => {
@@ -170,9 +170,19 @@ function sendSignal(action, message) {
     webSocket.send(jsonstr);
 }
 
+const iceConfiguration = {
+    iceServers: [
+        {
+            urls: 'stun:3.94.179.169:3478',
+            username: 'burhan',
+            credentials: '12345678'
+        }
+    ]
+}
 function createOfferer(peerUsername, receiver_channel_name) {
     console.log("in createOfferer!", peerUsername, receiver_channel_name)
-    var peer = new RTCPeerConnection(null);
+    // var peer = new RTCPeerConnection(null);
+    var peer = new RTCPeerConnection(iceConfiguration);
     addLocalTracks(peer);
     var dc = peer.createDataChannel('channel');
     dc.addEventListener('open', () => {
@@ -215,7 +225,8 @@ function createOfferer(peerUsername, receiver_channel_name) {
 }
 
 function createAnswer(offer, peerUsername, receiver_channel_name) {
-    var peer = new RTCPeerConnection(null);
+    // var peer = new RTCPeerConnection(null);
+    var peer = new RTCPeerConnection(iceConfiguration);
 
     addLocalTracks(peer);
 

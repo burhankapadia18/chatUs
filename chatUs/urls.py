@@ -20,7 +20,7 @@ from rest_framework.routers import DefaultRouter
 from chat_room.urls import router as chat_room_router
 
 # only for testing
-from chat_room.views import test_room
+from chat_room.views import test_room, test_room_new
 
 router = DefaultRouter()
 router.registry.extend(chat_room_router.registry)
@@ -29,5 +29,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('authentication/', include('authentication.urls')),
     path('test-room/', test_room, name='test-room'),
+    path('test-room-new/', test_room_new, name='test-room-new'),
     re_path(r'', include(router.urls))
 ]

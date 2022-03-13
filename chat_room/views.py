@@ -11,6 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework import viewsets
 from rest_framework.decorators import action
 import uuid
+import os
 
 # Create your views here.
 
@@ -23,6 +24,14 @@ class chat_roomViewSet(ModelViewSet):
 
 
 def test_room(request):
-    data = {'room_name':str(uuid.uuid4())}
-    print(data)
+    data = {'room_id':str(uuid.uuid4())}
     return render(request, 'chat_room/room.html', data)
+
+def test_room_new(request):
+    data = {
+        'room_id':str(uuid.uuid4()),
+        'stun_server_url':os.getenv('STUN_SERVER_URL'),
+        'stun_server_username':os.getenv('STUN_SERVER_USERNAME'),
+        'stun_server_credentials':os.getenv('STUN_SERVER_CREDENTIALS'),
+        }
+    return render(request, 'chat_room/room_new.html', data)

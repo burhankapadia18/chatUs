@@ -118,10 +118,10 @@ var userMedia = navigator.mediaDevices.getUserMedia(constraints)
         btnToggleAudio.addEventListener('click', () => {
             audioTracks[0].enabled = !audioTracks[0].enabled;
             if(audioTracks[0].enabled) {
-                btnToggleAudio.innerHTML = 'Audio Mute';
+                btnToggleAudio.innerHTML = 'Mute';
                 return;
             }
-            btnToggleAudio.innerHTML = 'Audio Unmute';
+            btnToggleAudio.innerHTML = 'Unmute';
         });
 
         btnToggleVideo.addEventListener('click', () => {
@@ -145,13 +145,14 @@ var messageInput = document.querySelector('#msg');
 function sendMsgOnclick() {
     var message = messageInput.value;
 
-    var li = document.createElement('li');
-    li.appendChild(document.createTextNode('Me: '+message));
-    messageList.appendChild(li);
+    var div_msg_wrapper = document.createElement('div');
+    div_msg_wrapper.class = "message-wrapper";
+    div_msg_wrapper.innerHTML = "<div class='message-content'><p class='name'>Me</p><div class='message'>"+message+"</div></div>";
+    messageList.appendChild(div_msg_wrapper);
 
     var datachannels = getDataChannels();
 
-    message = username + ': '+message;
+    message = "<div class='message-content'><p class='name'>"+username+"</p><div class='message'>"+message+"</div></div>";
 
     for(index in datachannels) {
         datachannels[index].send(message);
@@ -170,9 +171,18 @@ function sendSignal(action, message) {
     webSocket.send(jsonstr);
 }
 
+const iceConfiguration = {
+    iceServers: [
+        {
+            urls: stun_server_url,
+            username: stun_server_username,
+            credentials: stun_server_credentials
+        }
+    ]
+}
 function createOfferer(peerUsername, receiver_channel_name) {
     console.log("in createOfferer!", peerUsername, receiver_channel_name)
-    var peer = new RTCPeerConnection(null);
+    var peer = new RTCPeerConnection(iceConfiguration);
     addLocalTracks(peer);
     var dc = peer.createDataChannel('channel');
     dc.addEventListener('open', () => {
@@ -215,7 +225,7 @@ function createOfferer(peerUsername, receiver_channel_name) {
 }
 
 function createAnswer(offer, peerUsername, receiver_channel_name) {
-    var peer = new RTCPeerConnection(null);
+    var peer = new RTCPeerConnection(iceConfiguration);
 
     addLocalTracks(peer);
 
@@ -276,9 +286,10 @@ function addLocalTracks(peer) {
 function dcOnMessage(event) {
     var message = event.data;
 
-    var li = document.createElement('li');
-    li.appendChild(document.createTextNode(message));
-    messageList.appendChild(li);
+    var div_msg_wrapper = document.createElement('div');
+    div_msg_wrapper.class = "message-wrapper";
+    div_msg_wrapper.innerHTML = message;
+    messageList.appendChild(div_msg_wrapper);
 }
 
 function createVideo(peerUsername) {
@@ -291,9 +302,14 @@ function createVideo(peerUsername) {
     remoteVideo.playsInline = true;
 
     var videoWrapper = document.createElement('div');
-
+    var nameTag = document.createElement('a');
+    nameTag.href = "#";
+    nameTag.id = "peer-"+peerUsername;
+    nameTag.class = "name-tag";
+    nameTag.innerText = peerUsername;
     videoContainer.appendChild(videoWrapper);
 
+    videoWrapper.appendChild(nameTag);
     videoWrapper.appendChild(remoteVideo);
 
     return remoteVideo;

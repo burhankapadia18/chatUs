@@ -1,18 +1,22 @@
 services:
 
-  conneckseek:
+  chat_us:
     image: chat_us
-    command: python /app/manage.py runserver 0.0.0.0:8000
+    command: python /app/manage.py runserver 0.0.0.0:8002
     restart: always
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - STUN_SERVER_URL=stun:3.94.179.169:3478
+      - STUN_SERVER_USERNAME=burhan
+      - STUN_SERVER_CREDENTIALS=12345678
     volumes:
       - ./:/app 
     ports:
-      - 8000:8000
+      - 8002:8002
 
   redis:
     image: redis:alpine
+    restart: always
     ports:
       - 6379:6379
