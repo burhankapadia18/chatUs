@@ -25,7 +25,7 @@ class chat_roomViewSet(ModelViewSet):
 
 def test_room(request):
     data = {'room_id':str(uuid.uuid4())}
-    return render(request, 'chat_room/room.html', data)
+    return render(request, 'chat_room/room_old.html', data)
 
 def test_room_new(request):
     data = {

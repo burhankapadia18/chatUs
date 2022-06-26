@@ -4,14 +4,7 @@ ENV PYTHONUNBUFFERED 1
 # install dev packages in a virtual package .build-deps
 RUN apt-get -y update && apt-get install -y --no-install-recommends\
     build-essential \
-    python3-dev \
-    cmake \
-    libssl-dev libffi-dev libsm6 libxext6 libxrender-dev \
-    default-libmysqlclient-dev \
-    gcc \
-    ffmpeg \
-    libsm6 \
-    libxext6 
+    python3-dev 
 
 RUN apt-get clean && apt-get autoclean && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/*
 

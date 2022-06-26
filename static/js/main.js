@@ -145,13 +145,14 @@ var messageInput = document.querySelector('#msg');
 function sendMsgOnclick() {
     var message = messageInput.value;
 
-    var li = document.createElement('li');
-    li.appendChild(document.createTextNode('Me: '+message));
-    messageList.appendChild(li);
+    var div_msg_wrapper = document.createElement('div');
+    div_msg_wrapper.class = "message-wrapper";
+    div_msg_wrapper.innerHTML = "<div class='message-content'><p class='name'>Me</p><div class='message'>"+message+"</div></div>";
+    messageList.appendChild(div_msg_wrapper);
 
     var datachannels = getDataChannels();
 
-    message = username + ': '+message;
+    message = "<div class='message-content'><p class='name'>"+username+"</p><div class='message'>"+message+"</div></div>";
 
     for(index in datachannels) {
         datachannels[index].send(message);
@@ -173,15 +174,14 @@ function sendSignal(action, message) {
 const iceConfiguration = {
     iceServers: [
         {
-            urls: 'stun:3.94.179.169:3478',
-            username: 'burhan',
-            credentials: '12345678'
+            urls: stun_server_url,
+            username: stun_server_username,
+            credentials: stun_server_credentials
         }
     ]
 }
 function createOfferer(peerUsername, receiver_channel_name) {
     console.log("in createOfferer!", peerUsername, receiver_channel_name)
-    // var peer = new RTCPeerConnection(null);
     var peer = new RTCPeerConnection(iceConfiguration);
     addLocalTracks(peer);
     var dc = peer.createDataChannel('channel');
@@ -225,7 +225,6 @@ function createOfferer(peerUsername, receiver_channel_name) {
 }
 
 function createAnswer(offer, peerUsername, receiver_channel_name) {
-    // var peer = new RTCPeerConnection(null);
     var peer = new RTCPeerConnection(iceConfiguration);
 
     addLocalTracks(peer);
@@ -287,9 +286,10 @@ function addLocalTracks(peer) {
 function dcOnMessage(event) {
     var message = event.data;
 
-    var li = document.createElement('li');
-    li.appendChild(document.createTextNode(message));
-    messageList.appendChild(li);
+    var div_msg_wrapper = document.createElement('div');
+    div_msg_wrapper.class = "message-wrapper";
+    div_msg_wrapper.innerHTML = message;
+    messageList.appendChild(div_msg_wrapper);
 }
 
 function createVideo(peerUsername) {
@@ -302,9 +302,14 @@ function createVideo(peerUsername) {
     remoteVideo.playsInline = true;
 
     var videoWrapper = document.createElement('div');
-
+    var nameTag = document.createElement('a');
+    nameTag.href = "#";
+    nameTag.id = "peer-"+peerUsername;
+    nameTag.class = "name-tag";
+    nameTag.innerText = peerUsername;
     videoContainer.appendChild(videoWrapper);
 
+    videoWrapper.appendChild(nameTag);
     videoWrapper.appendChild(remoteVideo);
 
     return remoteVideo;
